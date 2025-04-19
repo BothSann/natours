@@ -66,7 +66,7 @@ export const createTour = async (request, response) => {
   } catch (err) {
     response.status(400).json({
       status: "fail",
-      message: "Invalid data sent",
+      message: err.message,
     });
   }
 };
@@ -91,7 +91,7 @@ export const updateTour = async (request, response) => {
   } catch (err) {
     response.status(400).json({
       status: "fail",
-      message: "Invalid data sent",
+      message: err.message,
     });
   }
 };
