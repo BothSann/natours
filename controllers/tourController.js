@@ -1,5 +1,12 @@
 import Tour from "./../models/tourModel.js";
 
+export const aliasTopTours = (request, response, next) => {
+  request.query.limit = "5";
+  request.query.sort = "-ratingsAverage,price";
+  request.query.fields = "name,price,ratingsAverage,summary,difficulty";
+  next();
+};
+
 export const getAllTours = async (request, response) => {
   try {
     // Build Query
@@ -7,14 +14,38 @@ export const getAllTours = async (request, response) => {
     const queryObj = { ...request.query };
     const excludedFields = ["page", "sort", "limit", "fields"];
     excludedFields.forEach((el) => delete queryObj[el]);
-
-    console.log(request.query);
+    console.log(queryObj);
 
     // 2) Advanced Filtering
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
+
+    if (request.query.sort) {
+      const sortBy = request.query.sort.split(",").join(" ");
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort("-createdAt");
+    }
+
+    // 3) Field Limiting
+    if (request.query.fields) {
+      const fields = request.query.fields.split(",").join(" ");
+      query = query.select(fields);
+    } else {
+      query = query.select("-__v");
+    }
+
+    // 4) Pagination
+    const page = request.query.page * 1 || 1;
+    const limit = request.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+    if (request.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error("This page does not exist");
+    }
 
     // const query = Tour.find(queryObj);
 
@@ -31,7 +62,7 @@ export const getAllTours = async (request, response) => {
   } catch (err) {
     response.status(404).json({
       status: "fail",
-      message: "Error fetching tours",
+      message: err.message,
     });
   }
 };
