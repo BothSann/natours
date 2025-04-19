@@ -214,6 +214,7 @@ export const getMonthlyPlan = async (request, response) => {
 
     response.status(200).json({
       status: "success",
+      result: plan.length,
       data: {
         plan,
       },
