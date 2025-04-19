@@ -7,11 +7,16 @@ export const aliasTopTours = (request, response, next) => {
   next();
 };
 
-export const getAllTours = async (request, response) => {
-  try {
+class APIQueryBuilder {
+  constructor(mongooseQuery, requestQuery) {
+    this.mongooseQuery = mongooseQuery;
+    this.requestQuery = requestQuery;
+  }
+
+  filter() {
     // Build Query
     /// 1) Filtering
-    const queryObj = { ...request.query };
+    const queryObj = { ...requestQuery };
     const excludedFields = ["page", "sort", "limit", "fields"];
     excludedFields.forEach((el) => delete queryObj[el]);
     console.log(queryObj);
@@ -20,37 +25,51 @@ export const getAllTours = async (request, response) => {
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
-    let query = Tour.find(JSON.parse(queryStr));
+    this.mongooseQuery = this.mongooseQuery.find(JSON.parse(queryStr));
 
-    if (request.query.sort) {
-      const sortBy = request.query.sort.split(",").join(" ");
-      query = query.sort(sortBy);
+    return this;
+  }
+
+  sort() {
+    if (this.requestQuery.sort) {
+      const sortBy = this.requestQuery.sort.split(",").join(" ");
+      this.mongooseQuery = this.mongooseQuery.sort(sortBy);
     } else {
-      query = query.sort("-createdAt");
+      this.mongooseQuery = this.mongooseQuery.sort("-createdAt");
     }
 
-    // 3) Field Limiting
-    if (request.query.fields) {
-      const fields = request.query.fields.split(",").join(" ");
-      query = query.select(fields);
+    return this;
+  }
+
+  limitFields() {
+    if (this.requestQuery.fields) {
+      const fields = this.requestQuery.fields.split(",").join(" ");
+      this.mongooseQuery = this.mongooseQuery.select(fields);
     } else {
-      query = query.select("-__v");
+      this.mongooseQuery = this.mongooseQuery.select("-__v");
     }
 
-    // 4) Pagination
-    const page = request.query.page * 1 || 1;
-    const limit = request.query.limit * 1 || 100;
+    return this;
+  }
+
+  paginate() {
+    const page = this.requestQuery.page * 1 || 1;
+    const limit = this.requestQuery.limit * 1 || 100;
     const skip = (page - 1) * limit;
-    query = query.skip(skip).limit(limit);
-    if (request.query.page) {
-      const numTours = await Tour.countDocuments();
-      if (skip >= numTours) throw new Error("This page does not exist");
-    }
+    this.mongooseQuery = this.mongooseQuery.skip(skip).limit(limit);
 
-    // const query = Tour.find(queryObj);
+    return this;
+  }
+}
 
-    // Execute Query
-    const allTours = await query;
+export const getAllTours = async (request, response) => {
+  try {
+    // Build query
+    const queryBuilder = new APIQueryBuilder(Tour.find(), request.query);
+    const query = queryBuilder.filter().sort().limitFields().paginate();
+
+    // Execute query
+    const allTours = await query.query;
 
     response.status(200).json({
       status: "success",
