@@ -1,0 +1,8 @@
+# Ignore the prettier config file
+*.prettierrc
+# Ignore the config.env file
+config.env
+# Ignore the eslintrc.json file
+.eslintrc.json
+# Ignore the node_modules directory
+node_modules/
