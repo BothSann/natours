@@ -16,7 +16,7 @@ class APIQueryBuilder {
   filter() {
     // Build Query
     /// 1) Filtering
-    const queryObj = { ...requestQuery };
+    const queryObj = { ...this.requestQuery };
     const excludedFields = ["page", "sort", "limit", "fields"];
     excludedFields.forEach((el) => delete queryObj[el]);
     console.log(queryObj);
@@ -65,11 +65,14 @@ class APIQueryBuilder {
 export const getAllTours = async (request, response) => {
   try {
     // Build query
-    const queryBuilder = new APIQueryBuilder(Tour.find(), request.query);
-    const query = queryBuilder.filter().sort().limitFields().paginate();
+    const queryBuilder = new APIQueryBuilder(Tour.find(), request.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
 
     // Execute query
-    const allTours = await query.query;
+    const allTours = await queryBuilder.mongooseQuery;
 
     response.status(200).json({
       status: "success",
