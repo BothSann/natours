@@ -3,11 +3,20 @@ import Tour from "./../models/tourModel.js";
 export const getAllTours = async (request, response) => {
   try {
     // Build Query
+    /// 1) Filtering
     const queryObj = { ...request.query };
     const excludedFields = ["page", "sort", "limit", "fields"];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    const query = Tour.find(queryObj);
+    console.log(request.query);
+
+    // 2) Advanced Filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+
+    const query = Tour.find(JSON.parse(queryStr));
+
+    // const query = Tour.find(queryObj);
 
     // Execute Query
     const allTours = await query;
