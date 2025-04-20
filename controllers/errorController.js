@@ -5,6 +5,18 @@ const handleCastErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleDuplicateFieldsDB = (err) => {
+  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  const message = `Duplicate field value: ${value}. Please use another value!`;
+  return new AppError(message, 400);
+};
+
+const handleValidationErrorDB = (err) => {
+  const errors = Object.values(err.errors).map((el) => el.message);
+  const message = `Invalid input data. ${errors.join(". ")}`;
+  return new AppError(message, 400);
+};
+
 const sendErrorDev = (err, req, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -46,7 +58,10 @@ function globalErrorHandler(err, req, res, next) {
 
     // Handle CastError (invalid MongoDB ObjectId)
     if (err.name === "CastError") error = handleCastErrorDB(err);
-
+    // Handle duplicate key error (MongoDB)
+    if (err.code === 11000) error = handleDuplicateFieldsDB(err);
+    // Handle validation error (Mongoose)
+    if (err.name === "ValidationError") error = handleValidationErrorDB(err);
     // Send the error response
     sendErrorProduction(error, req, res);
   }
