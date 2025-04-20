@@ -1,6 +1,7 @@
 import e from "express";
 import mongoose from "mongoose";
 import slugify from "slugify";
+import validator from "validator";
 
 // Mongoose Schema
 const tourSchema = new mongoose.Schema(
@@ -12,6 +13,12 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       maxLength: [40, "A tour name must have less or equal than 40 characters"],
       minLength: [10, "A tour name must have more or equal than 10 characters"],
+      validate: {
+        validator: function (value) {
+          return validator.isAlpha(value, "en-US", { ignore: " " });
+        },
+        message: "Tour name must only contain characters",
+      },
     },
     slug: {
       type: String,
@@ -53,6 +60,12 @@ const tourSchema = new mongoose.Schema(
     },
     priceDiscount: {
       type: Number,
+      validate: {
+        validator: function (value) {
+          return value < this.price; // This only points to current doc on NEW document creation
+        },
+        message: "Discount price ({VALUE}) should be below regular price",
+      },
     },
     summary: {
       type: String,
