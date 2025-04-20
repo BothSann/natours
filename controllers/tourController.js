@@ -1,6 +1,7 @@
 import Tour from "./../models/tourModel.js";
 import APIQueryBuilder from "./../utils/apiQueryBuilder.js";
 import catchAsync from "./../utils/catchAsync.js";
+import { AppError } from "../utils/appError.js";
 
 export const aliasTopTours = (request, response, next) => {
   request.query.limit = "5";
@@ -32,6 +33,10 @@ export const getAllTours = catchAsync(async (request, response, next) => {
 export const getTourById = catchAsync(async (request, response, next) => {
   const tourById = await Tour.findById(request.params.id);
 
+  if (!tourById) {
+    return next(new AppError("No tour found with that ID", 404));
+  }
+
   response.status(200).json({
     status: "success",
     data: {
@@ -61,6 +66,10 @@ export const updateTour = catchAsync(async (request, response, next) => {
     }
   );
 
+  if (!updateTour) {
+    return next(new AppError("No tour found with that ID", 404));
+  }
+
   response.status(200).json({
     status: "success",
     data: {
@@ -73,10 +82,7 @@ export const deleteTour = catchAsync(async (request, response, next) => {
   const tourToDelete = await Tour.findByIdAndDelete(request.params.id);
 
   if (!tourToDelete) {
-    return response.status(404).json({
-      status: "fail",
-      message: "No tour found with that ID",
-    });
+    return next(new AppError("No tour found with that ID", 404));
   }
 
   response.status(204).json({
