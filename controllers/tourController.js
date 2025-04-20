@@ -1,5 +1,6 @@
 import Tour from "./../models/tourModel.js";
 import APIQueryBuilder from "./../utils/apiQueryBuilder.js";
+import catchAsync from "./../utils/catchAsync.js";
 
 export const aliasTopTours = (request, response, next) => {
   request.query.limit = "5";
@@ -53,23 +54,16 @@ export const getTourById = async (request, response) => {
   }
 };
 
-export const createTour = async (request, response) => {
-  try {
-    const newTour = await Tour.create(request.body);
+export const createTour = catchAsync(async (request, response, next) => {
+  const newTour = await Tour.create(request.body);
 
-    response.status(201).json({
-      status: "success",
-      data: {
-        tour: newTour,
-      },
-    });
-  } catch (err) {
-    response.status(400).json({
-      status: "fail",
-      message: err.message,
-    });
-  }
-};
+  response.status(201).json({
+    status: "success",
+    data: {
+      tour: newTour,
+    },
+  });
+});
 
 export const updateTour = async (request, response) => {
   try {
