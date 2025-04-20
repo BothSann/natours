@@ -1,4 +1,4 @@
-export default (err, req, res, next) => {
+function globalErrorHandler(err, req, res, next) {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
@@ -6,4 +6,6 @@ export default (err, req, res, next) => {
     status: err.status,
     message: err.message,
   });
-};
+}
+
+export default globalErrorHandler;
