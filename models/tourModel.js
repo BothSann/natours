@@ -79,11 +79,12 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-
+// Virtual Properties
 tourSchema.virtual("durationWeeks").get(function () {
   return this.duration / 7;
 });
 
+// Document Middleware: runs before .save() and .create()
 tourSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
@@ -97,6 +98,13 @@ tourSchema.pre(/^find/, function (next) {
 
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds!`);
+  next();
+});
+
+// Aggregation Middleware
+tourSchema.pre("aggregate", function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  console.log(this.pipeline());
   next();
 });
 
