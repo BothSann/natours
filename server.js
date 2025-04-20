@@ -1,3 +1,14 @@
+process.on("unhandledRejection", (err) => {
+  console.log("Unhandled Rejection! Shutting down...");
+  console.log(err.name, err.message);
+  process.exit(1); // Exit the process with failure
+});
+process.on("uncaughtException", (err) => {
+  console.log("Uncaught Exception! Shutting down...");
+  console.log(err.name, err.message);
+  process.exit(1); // Exit the process with failure
+});
+
 import app from "./app.js";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
