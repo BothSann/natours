@@ -67,16 +67,15 @@ export const protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
+    console.log(req.user);
   }
 
   if (!token)
     return next(new AppError("Access denied! Please log in first", 401));
 
   // 2. Verifying the token
-
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  console.log(decoded);
   // 3. Check if user still exists
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
@@ -85,5 +84,16 @@ export const protect = catchAsync(async (req, res, next) => {
     );
   }
 
+  // 4. Check if the user changed the password after the token was issued
+  if (currentUser.changedPasswordAfter(decoded.iat))
+    return next(
+      new AppError(
+        "User recently changed the password! Please log in again",
+        401
+      )
+    );
+
+  // Passed the protected route
+  req.user = currentUser;
   next();
 });
