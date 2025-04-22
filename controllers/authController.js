@@ -2,6 +2,7 @@ import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import catchAsync from "../utils/catchAsync.js";
 import { AppError } from "../utils/appError.js";
+import { promisify } from "util";
 
 const signToken = (id) => {
   return jwt.sign(
@@ -55,4 +56,34 @@ export const login = catchAsync(async (req, res, next) => {
     status: "success",
     token,
   });
+});
+
+export const protect = catchAsync(async (req, res, next) => {
+  // 1. Getting token and check if it is there
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token)
+    return next(new AppError("Access denied! Please log in first", 401));
+
+  // 2. Verifying the token
+
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  console.log(decoded);
+  // 3. Check if user still exists
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(
+      new AppError("The user belonging to this token no longer exists.", 401)
+    );
+  }
+
+  next();
 });

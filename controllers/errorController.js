@@ -44,6 +44,14 @@ const sendErrorProduction = (err, req, res) => {
   }
 };
 
+const handleJsonWebTokenError = () => {
+  return new AppError("Invalid token. Please log in again!", 401);
+};
+
+const handleTokenExpiredError = () => {
+  return new AppError("Your token has expired! Please log in again.", 401);
+};
+
 function globalErrorHandler(err, req, res, next) {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
@@ -62,6 +70,8 @@ function globalErrorHandler(err, req, res, next) {
     if (err.code === 11000) error = handleDuplicateFieldsDB(err);
     // Handle validation error (Mongoose)
     if (err.name === "ValidationError") error = handleValidationErrorDB(err);
+    if (err.name === "JsonWebTokenError") error = handleJsonWebTokenError();
+    if (err.name === "TokenExpiredError") error = handleTokenExpiredError();
     // Send the error response
     sendErrorProduction(error, req, res);
   }
