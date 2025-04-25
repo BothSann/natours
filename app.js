@@ -5,9 +5,14 @@ import userRouter from "./routes/userRoutes.js";
 import { AppError } from "./utils/appError.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import { rateLimit } from "express-rate-limit";
+import helmet from "helmet";
 
 const app = express();
 
+// Set Security HTTP Header
+app.use(helmet());
+
+// Limit request from same IP
 const limiter = rateLimit({
   max: 100, // 100 request from the same IP
   windowMs: 60 * 60 * 1000, // 1hour
@@ -15,11 +20,14 @@ const limiter = rateLimit({
   legacyHeaders: true,
 });
 
+// Middlewares
 app.use("/api", limiter);
-
-// Middleware
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(
+  express.json({
+    limit: "10kb",
+  })
+);
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
 
