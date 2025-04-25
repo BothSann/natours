@@ -5,7 +5,9 @@ import userRouter from "./routes/userRoutes.js";
 import { AppError } from "./utils/appError.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import { rateLimit } from "express-rate-limit";
-import helmet from "helmet";
+import helmet, { xssFilter } from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
 
 const app = express();
 
@@ -28,6 +30,13 @@ app.use(
     limit: "10kb",
   })
 );
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Data sanitization againt XSS
+app.use(xss());
+
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
 
