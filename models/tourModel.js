@@ -1,8 +1,6 @@
-import e from "express";
 import mongoose from "mongoose";
 import slugify from "slugify";
 import validator from "validator";
-import User from "./userModel.js";
 
 // Mongoose Schema
 const tourSchema = new mongoose.Schema(
@@ -134,9 +132,12 @@ const tourSchema = new mongoose.Schema(
         },
       },
     ],
-    guides: {
-      type: Array,
-    },
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -154,12 +155,13 @@ tourSchema.pre("save", function (next) {
   next();
 });
 
-tourSchema.pre("save", async function (next) {
-  const guidesPromises = this.guides.map((id) => User.findById(id));
-  this.guides = await Promise.all(guidesPromises);
+// Embedding
+// tourSchema.pre("save", async function (next) {
+//   const guidesPromises = this.guides.map((id) => User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
 
-  next();
-});
+//   next();
+// });
 
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
