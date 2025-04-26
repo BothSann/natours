@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import tourRouter from "./routes/tourRoutes.js";
 import userRouter from "./routes/userRoutes.js";
+import reviewRouter from "./routes/reviewRoutes.js";
 import { AppError } from "./utils/appError.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import { rateLimit } from "express-rate-limit";
@@ -54,6 +55,7 @@ app.use(
 
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/reviews", reviewRouter);
 
 // Error handling middleware
 app.all("*", (req, res, next) => {
