@@ -1,7 +1,6 @@
 import Tour from "./../models/tourModel.js";
 import APIQueryBuilder from "./../utils/apiQueryBuilder.js";
 import catchAsync from "./../utils/catchAsync.js";
-import { AppError } from "../utils/appError.js";
 import * as factory from "./handlerFactory.js";
 
 export const aliasTopTours = (request, response, next) => {
@@ -11,41 +10,8 @@ export const aliasTopTours = (request, response, next) => {
   next();
 };
 
-export const getAllTours = catchAsync(async (request, response, next) => {
-  // Build query
-  const queryBuilder = new APIQueryBuilder(Tour.find(), request.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-
-  // Execute query
-  const allTours = await queryBuilder.mongooseQuery;
-
-  response.status(200).json({
-    status: "success",
-    results: allTours.length,
-    data: {
-      tours: allTours,
-    },
-  });
-});
-
-export const getTourById = catchAsync(async (request, response, next) => {
-  const tourById = await Tour.findById(request.params.id).populate("reviews");
-
-  if (!tourById) {
-    return next(new AppError("No tour found with that ID", 404));
-  }
-
-  response.status(200).json({
-    status: "success",
-    data: {
-      tour: tourById,
-    },
-  });
-});
-
+export const getAllTours = factory.getAll(Tour);
+export const getTourById = factory.getOne(Tour, { path: "reviews" });
 export const createTour = factory.createOne(Tour);
 export const updateTour = factory.updateOne(Tour);
 export const deleteTour = factory.deleteOne(Tour);
