@@ -8,13 +8,21 @@ router
   .route("/")
   .get(
     authController.protect,
-    authController.restrictTo("user"),
+    authController.restrictTo("user", "admin"),
     reviewController.getAllReviews
   )
   .post(
     authController.protect,
     authController.restrictTo("user"),
     reviewController.createReview
+  );
+
+router
+  .route("/:id")
+  .delete(
+    authController.protect,
+    authController.restrictTo("admin"),
+    reviewController.deleteReview
   );
 
 export default router;
