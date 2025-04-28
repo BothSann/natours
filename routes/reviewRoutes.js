@@ -20,6 +20,7 @@ router
 
 router
   .route("/:id")
+  .get(reviewController.getReviewById)
   .patch(reviewController.updateReview)
   .delete(
     authController.protect,
