@@ -1,5 +1,6 @@
 import catchAsync from "../utils/catchAsync.js";
 import { AppError } from "../utils/appError.js";
+import APIQueryBuilder from "./../utils/apiQueryBuilder.js";
 
 export const createOne = (Model) =>
   catchAsync(async (request, response, next) => {
@@ -46,6 +47,49 @@ export const updateOne = (Model) =>
       status: "success",
       data: {
         data: updateDoc,
+      },
+    });
+  });
+
+export const getOne = (Model, populateOptions) =>
+  catchAsync(async (request, response, next) => {
+    let query = Model.findById(request.params.id);
+    if (populateOptions) query.populate(populateOptions);
+    const docById = await query;
+
+    if (!docById) {
+      return next(new AppError("No doc found with that ID", 404));
+    }
+
+    response.status(200).json({
+      status: "success",
+      data: {
+        data: docById,
+      },
+    });
+  });
+
+export const getAll = (Model) =>
+  catchAsync(async (request, response, next) => {
+    // To allow for nested GET review on tour
+    let filter = {};
+    if (req.params.tourId) filter = { tour: req.params.tourId };
+
+    // Build query
+    const queryBuilder = new APIQueryBuilder(Model.find(filter), request.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+
+    // Execute query
+    const allDocs = await queryBuilder.mongooseQuery;
+
+    response.status(200).json({
+      status: "success",
+      results: allDocs.length,
+      data: {
+        data: allDocs,
       },
     });
   });
