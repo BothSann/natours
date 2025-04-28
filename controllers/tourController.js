@@ -2,6 +2,7 @@ import Tour from "./../models/tourModel.js";
 import APIQueryBuilder from "./../utils/apiQueryBuilder.js";
 import catchAsync from "./../utils/catchAsync.js";
 import { AppError } from "../utils/appError.js";
+import * as factory from "./handlerFactory.js";
 
 export const aliasTopTours = (request, response, next) => {
   request.query.limit = "5";
@@ -78,18 +79,20 @@ export const updateTour = catchAsync(async (request, response, next) => {
   });
 });
 
-export const deleteTour = catchAsync(async (request, response, next) => {
-  const tourToDelete = await Tour.findByIdAndDelete(request.params.id);
+export const deleteTour = factory.deleteOne(Tour);
 
-  if (!tourToDelete) {
-    return next(new AppError("No tour found with that ID", 404));
-  }
+// export const deleteTour = catchAsync(async (request, response, next) => {
+//   const tourToDelete = await Tour.findByIdAndDelete(request.params.id);
 
-  response.status(204).json({
-    status: "success",
-    data: null,
-  });
-});
+//   if (!tourToDelete) {
+//     return next(new AppError("No tour found with that ID", 404));
+//   }
+
+//   response.status(204).json({
+//     status: "success",
+//     data: null,
+//   });
+// });
 
 export const getTourStats = catchAsync(async (request, response, next) => {
   const stats = await Tour.aggregate([
