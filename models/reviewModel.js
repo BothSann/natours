@@ -50,6 +50,8 @@ reviewSchema.pre(/^find/, function (next) {
   next();
 });
 
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 reviewSchema.statics.calcAvgRatings = async function (tourId) {
   const stats = await this.aggregate([
     {
