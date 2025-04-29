@@ -70,13 +70,13 @@ export const getOne = (Model, populateOptions) =>
   });
 
 export const getAll = (Model) =>
-  catchAsync(async (request, response, next) => {
+  catchAsync(async (req, res, next) => {
     // To allow for nested GET review on tour
     let filter = {};
     if (req.params.tourId) filter = { tour: req.params.tourId };
 
     // Build query
-    const queryBuilder = new APIQueryBuilder(Model.find(filter), request.query)
+    const queryBuilder = new APIQueryBuilder(Model.find(filter), req.query)
       .filter()
       .sort()
       .limitFields()
@@ -85,7 +85,7 @@ export const getAll = (Model) =>
     // Execute query
     const allDocs = await queryBuilder.mongooseQuery;
 
-    response.status(200).json({
+    res.status(200).json({
       status: "success",
       results: allDocs.length,
       data: {
