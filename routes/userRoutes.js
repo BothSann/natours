@@ -6,24 +6,21 @@ const router = express.Router();
 
 router.post("/signup", authController.signup);
 router.post("/login", authController.login);
-
 router.post("/forgotPassword", authController.forgotPassword);
 router.patch("/resetPassword/:token", authController.resetPassworod);
 
-router.get(
-  "/me",
-  authController.protect,
-  userController.getMe,
-  userController.getUserById
-);
-router.patch("/updateMe", authController.protect, userController.updateMe);
-router.delete("/deleteMe", authController.protect, userController.deleteMe);
+router.use(authController.protect);
 
+router.get("/me", userController.getMe, userController.getUserById);
 router.patch(
   "/updateMyPassword",
-  authController.protect,
+
   authController.updatePassword
 );
+router.patch("/updateMe", userController.updateMe);
+router.delete("/deleteMe", userController.deleteMe);
+
+router.use(authController.restrictTo("admin"));
 
 router
   .route("/")
@@ -33,10 +30,6 @@ router
   .route("/:id")
   .get(userController.getUserById)
   .patch(userController.updateUser)
-  .delete(
-    authController.protect,
-    authController.restrictTo("admin"),
-    userController.deleteUser
-  );
+  .delete(authController.restrictTo("admin"), userController.deleteUser);
 
 export default router;
