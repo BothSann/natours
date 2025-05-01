@@ -1,4 +1,4 @@
-import mongoose, { set } from "mongoose";
+import mongoose from "mongoose";
 import slugify from "slugify";
 import validator from "validator";
 
