@@ -10,8 +10,17 @@ import helmet, { xssFilter } from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import hpp from "hpp";
+import path from "path";
+import { fileURLToPath } from "url";
+import viewRouter from "./routes/viewRoutes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set("view engine", "pug");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Set Security HTTP Header
 app.use(helmet());
@@ -52,7 +61,7 @@ app.use(
     ],
   })
 );
-
+app.use("/", viewRouter);
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/reviews", reviewRouter);
